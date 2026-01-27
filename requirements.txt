@@ -1,0 +1,9 @@
+faiss-cpu
+gradio
+numpy
+opencv-python
+pdf2image
+pytesseract
+requests
+sentence-transformers
+tqdm

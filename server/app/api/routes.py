@@ -33,6 +33,7 @@ class QueryResponse(BaseModel):
     is_fallback: bool
     success: bool
     logs: Optional[list[str]] = None
+    detailed_trace: Optional[list[dict]] = None
 
 
 class HealthResponse(BaseModel):
@@ -101,7 +102,8 @@ async def process_query(request: QueryRequest):
         tone=result.tone,
         is_fallback=result.is_fallback,
         success=result.success,
-        logs=result.logs
+        logs=result.logs,
+        detailed_trace=result.detailed_trace
     )
 
 

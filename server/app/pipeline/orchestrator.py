@@ -24,6 +24,7 @@ class PipelineResult:
     category: str = "General"
     tone: str = "Simplified Educational"
     logs: list[str] = field(default_factory=list)
+    detailed_trace: list[dict] = field(default_factory=list)
     success: bool = True
     is_fallback: bool = False
 
@@ -104,6 +105,7 @@ def run_adaptive_rag_pipeline(user_query: str) -> PipelineResult:
         max_retries = settings.max_pipeline_retries
         attempt = 0
         logs = []
+        detailed_trace = []
         feedback_reason = None
         recon = None
         
@@ -136,19 +138,43 @@ def run_adaptive_rag_pipeline(user_query: str) -> PipelineResult:
             
             logs.extend(recon['logs'])
             
+            trace_data = {
+                "cycle": attempt,
+                "analysis": recon,
+                "steps": []
+            }
+            
+            # --- PHASE 1-3 LOGGING ---
+            trace_data["steps"].append({"name": "Query Analysis", "status": "completed", "data": recon})
+            
             # 2. Retrieve Documents
             contexts = retrieve_documents(recon['final_query'])
+            # Extract names from formatted strings (Source: name\nContent: ...)
+            sources = []
+            for ctx in contexts:
+                if "Source: " in ctx:
+                    sources.append(ctx.split("\n")[0].replace("Source: ", ""))
+                else:
+                    sources.append("Unknown")
+            
+            trace_data["steps"].append({"name": "Document Retrieval", "status": "completed", "data": {"count": len(contexts), "sources": sources}})
             
             # 3. KB Coverage Guard
-            if not is_kb_covering(recon['final_query'], contexts):
+            coverage = is_kb_covering(recon['final_query'], contexts)
+            trace_data["steps"].append({"name": "KB Coverage Guard", "status": "completed" if coverage else "failed", "data": {"is_covered": coverage}})
+            if not coverage:
                 logs.append("⚠️ KB Coverage Failure (Weak Match). Retrying...")
                 feedback_reason = "Knowledge Base has no strong match for this specific medical subdomain."
+                detailed_trace.append(trace_data)
                 continue
             
             # 4. Grade Retrieval
-            if grade_retrieval(recon['final_query'], contexts) == "BAD":
+            grade = grade_retrieval(recon['final_query'], contexts)
+            trace_data["steps"].append({"name": "Retrieval Grading", "status": "completed" if grade == "GOOD" else "failed", "data": {"grade": grade}})
+            if grade == "BAD":
                 logs.append("⚠️ Retrieval BAD. Retrying...")
                 feedback_reason = "Retrieved documents were irrelevant."
+                detailed_trace.append(trace_data)
                 continue
             
             # 5. Generate Answer
@@ -158,9 +184,12 @@ def run_adaptive_rag_pipeline(user_query: str) -> PipelineResult:
                 recon['category'],
                 recon['answer_tone']
             )
+            trace_data["steps"].append({"name": "Answer Generation", "status": "completed", "data": {"raw_length": len(answer)}})
             
             # 6. Check Hallucination
-            if check_hallucination(answer, contexts) == "YES":
+            hallucination = check_hallucination(answer, contexts)
+            trace_data["steps"].append({"name": "Hallucination Check", "status": "completed", "data": {"is_hallucination": hallucination}})
+            if hallucination == "YES":
                 logs.append("⚠️ Hallucination detected. Regenerating...")
                 answer = generate_answer(
                     recon['final_query'],
@@ -170,17 +199,22 @@ def run_adaptive_rag_pipeline(user_query: str) -> PipelineResult:
                 )
             
             # 7. Check Final Relevance
-            if check_answer_relevance(answer, user_query) == "NO":
+            final_rel = check_answer_relevance(answer, user_query)
+            trace_data["steps"].append({"name": "Final Relevance Check", "status": "completed" if final_rel == "YES" else "failed", "data": {"is_relevant": final_rel}})
+            if final_rel == "NO":
                 logs.append("⚠️ Answer not relevant. Retrying...")
                 feedback_reason = "Answer missed intent."
+                detailed_trace.append(trace_data)
                 continue
             
             logs.append("✅ Success.")
+            detailed_trace.append(trace_data)
             return PipelineResult(
                 answer=answer,
                 category=recon['category'],
                 tone=recon['answer_tone'],
                 logs=logs,
+                detailed_trace=detailed_trace,
                 success=True
             )
         

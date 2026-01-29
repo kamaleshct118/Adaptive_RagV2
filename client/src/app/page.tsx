@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
 
 interface Message {
     id: string;
@@ -144,6 +145,10 @@ export default function Home() {
                         <p className="header-subtitle">Medical Guideline Intelligence</p>
                     </div>
                 </div>
+                <nav className="header-nav">
+                    <Link href="/" className="nav-link active">Chat</Link>
+                    <Link href="/visualize" className="nav-link">Architecture</Link>
+                </nav>
                 <div className="header-status">
                     <span className={`status-dot ${serverStatus !== 'online' ? 'status-offline' : ''}`}
                         style={{ background: serverStatus === 'online' ? 'var(--success)' : serverStatus === 'checking' ? 'var(--warning)' : 'var(--error)' }} />

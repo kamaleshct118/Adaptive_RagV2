@@ -1,15 +1,46 @@
-# User Specified Ignores
-vector_store/
-raw_documents/
-vector_store_backup.zip
-extracted_texts/
-
-# Standard Python/Jupyter Ignores
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-.ipynb_checkpoints/
+*.so
+.Python
 venv/
+ENV/
 env/
-.env
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 .DS_Store
+
+# Environment
+.env
+.env.local
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node.js (client)
+client/node_modules/
+client/.next/
+client/out/
+
+# Server
+server/venv/
+server/__pycache__/
+
+# Models (large files)
+*.pt
+*.bin
+*.onnx
+
+# Vector Store (can be regenerated)
+# Uncomment if you don't want to track vector store
+# vector_store/
+
+vector_storage
+

@@ -1,89 +1,125 @@
-# 🏥 Adaptive Learning Assistant (Rational Antimicrobial Use)
+# 🏥 Adaptive RAG System - Production Ready
 
-**A production-grade, offline-first Adaptive RAG system for medical guideline stewardship.**
+A production-grade, client-server architecture for the **Adaptive RAG Medical Guideline Assistant**.
 
-## 📚 Project Architecture
-This project uses a **Two-Notebook Architecture** to separate data engineering from inference:
+## 📚 Architecture Overview
 
-### 1. `offline_indexing_pipeline.ipynb` (The Factory)
-**Role**: Data Preprocessing & Indexing.
-**Status**: Run Once (Offline).
-**Process**:
--   **Ingest**: Reads PDFs/Images from `./raw_documents`.
--   **Digitize**: Uses Tesseract OCR to extract text.
--   **Chunk**: Splits text into sliding windows (400 chars).
--   **Embed**: Converts text to vectors using `all-MiniLM-L6-v2`.
--   **Index**: Saves a FAISS index to `./vector_store`.
+```
+adaptiverag/
+├── client/          # Next.js 14 Frontend
+│   ├── src/app/     # React components & pages
+│   └── package.json
+├── server/          # FastAPI Backend
+│   ├── app/
+│   │   ├── api/     # REST endpoints
+│   │   ├── core/    # LLM, embeddings, vector store
+│   │   └── pipeline/ # 10-phase RAG logic
+│   └── requirements.txt
+├── Documents/       # Source PDFs (medical guidelines)
+├── vector_store/    # FAISS index (generated)
+└── docker-compose.yml
+```
 
-### 2. `Adaptive__Rag.ipynb` (The Brain)
-**Role**: Inference & answering.
-**Status**: Run Anytime (Interative).
-**Process**:
--   **Load**: Mounts the `./vector_store`.
--   **Think**: Uses a 12-Step Adaptive Pipeline.
--   **Answer**: Provides cited, safe medical answers.
+## 🚀 Quick Start
 
----
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- A Groq API key (or OpenAI-compatible LLM API)
 
-## 🔄 The 12-Phase Adaptive Workflow
-Every query passes through this rigorous verification pipeline.
+### 1. Setup Backend
 
-### 🎮 Control Plane (Logic)
-**Phase 10: Orchestrator Loop**
-*   The Manager. Runs the retry loop (Max 2 attempts).
-*   Manages error handling (Rate Limits) and Fallback triggering.
+```bash
+cd server
 
-**Phase 4: Central Control Node**
-*   The Strategy Maker. Decides whether to use the user's raw query or a refined version.
+# Create virtual environment
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
 
-**Phase 1: Query Analysis & Restructuring**
-*   **Agent**: LLM
-*   **Goal**: Understand Intent, Category, and Tone.
-*   **Output**: A "Rewritten Query" optimized for vector search.
+# Install dependencies
+pip install -r requirements.txt
 
-**Phase 2: Relevance Check (Domain Filter)**
-*   **Agent**: Embedding Model + LLM
-*   **Goal**: Block irrelevant questions (e.g., "How to bake a cake") early.
+# Copy and configure environment
+cp .env.example .env
+# Edit .env and add your LLM_API_KEY
 
-**Phase 3: Safety Validation**
-*   **Agent**: Critical LLM
-*   **Goal**: Ensure the "Rewritten Query" didn't lose the original meaning or hallucinate.
+# Copy vector store
+xcopy ..\vector_store vector_store /E /I  # Windows
+# cp -r ../vector_store ./vector_store  # Linux/Mac
 
-### 💾 Data Plane (Retrieval)
-**Phase 5: Retriever (FAISS)**
-*   **Tool**: Vector Search
-*   **Goal**: Find top-3 matching document chunks.
+# Start server
+uvicorn app.main:app --reload --port 8000
+```
 
-**Phase 5b: KB Coverage Guard (NEW)**
-*   **Tool**: Semantic Similarity Check
-*   **Goal**: **Fail Fast**. If the retrieved chunks have low similarity (< 0.45) to the query, we reject them immediately as "Noise" and trigger a retry.
+### 2. Setup Frontend
 
-**Phase 6: Retrieval Grader**
-*   **Agent**: LLM
-*   **Goal**: Read the text. Does it *actually* contain the answer? If no, retry.
+```bash
+cd client
 
-### ✍️ Generation & Verification
-**Phase 7: Answer Generator**
-*   **Agent**: Tone-Aware LLM
-*   **Goal**: Write the answer using *only* the provided context. Adapts tone (Educational vs Clinical).
+# Install dependencies
+npm install
 
-**Phase 8: Hallucination Checker**
-*   **Agent**: LLM
-*   **Goal**: Fact-check the answer against the documents.
+# Start development server
+npm run dev
+```
 
-**Phase 9: Final Relevance Checker**
-*   **Agent**: LLM
-*   **Goal**: Ensure the answer addresses the user's original specific question.
-
-### 🚑 Safety Net
-**Phase 11: Transparent Fallback Agent (NEW)**
-*   **Trigger**: If all Retries fail or the KB Guard blocks everything.
-*   **Goal**: Provide general medical education with strict "No Knowledge Base" warnings, ensuring the user always gets a helpful (but safe) response.
+### 3. Access the Application
+- **Frontend**: http://localhost:3000
+- **Backend API Docs**: http://localhost:8000/docs
 
 ---
 
-## 🚀 How to Run
-1.  **Setup**: Install dependencies (`requirements.txt`).
-2.  **Index**: Run `offline_indexing_pipeline.ipynb` to create your database.
-3.  **Launch**: Run `Adaptive__Rag.ipynb`.
-4.  **Interact**: Use the Gradio UI at the bottom of the notebook.
+## 🔄 The 10-Phase Adaptive Pipeline
+
+Every query passes through this rigorous verification pipeline:
+
+| Phase | Name | Purpose |
+|-------|------|---------|
+| 1 | Query Analyzer | Understand intent, category, and tone |
+| 2 | Relevance Checker | Filter out-of-domain queries |
+| 3 | Safety Validator | Verify rewrite preserves meaning |
+| 4 | Central Control | Decide query strategy |
+| 5 | Retriever | FAISS vector search + KB coverage guard |
+| 6 | Retrieval Grader | Verify document quality |
+| 7 | Generator | Tone-aware answer generation |
+| 8 | Hallucination Checker | Fact-check against sources |
+| 9 | Final Checker | Verify answer addresses query |
+| 10 | Orchestrator | Retry loop with fallback |
+
+---
+
+## 🐳 Docker Deployment
+
+```bash
+docker-compose up --build
+```
+
+This starts:
+- Backend on `http://localhost:8000`
+- Frontend on `http://localhost:3000`
+
+---
+
+## 📁 Original Notebooks (Reference)
+
+The original Jupyter notebooks are preserved for reference:
+- `Adaptive__Rag.ipynb` - Interactive demo with Gradio
+- `offline_indexing_pipeline.ipynb` - Document indexing pipeline
+
+---
+
+## 🔧 Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LLM_API_KEY` | Your Groq/OpenAI API key | (required) |
+| `LLM_BASE_URL` | LLM API endpoint | `https://api.groq.com/openai/v1` |
+| `LLM_MODEL_NAME` | Model to use | `llama-3.3-70b-versatile` |
+| `VECTOR_STORE_DIR` | Path to FAISS index | `./vector_store` |
+
+---
+
+## 📝 License
+
+This project is for educational purposes in antimicrobial stewardship.

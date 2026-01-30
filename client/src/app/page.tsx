@@ -139,7 +139,6 @@ export default function Home() {
             {/* Header */}
             <header className="header">
                 <div className="header-logo">
-                    <div className="header-logo-icon">🏥</div>
                     <div>
                         <h1 className="header-title">Adaptive RAG Assistant</h1>
                         <p className="header-subtitle">Medical Guideline Intelligence</p>

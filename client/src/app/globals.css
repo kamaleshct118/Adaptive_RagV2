@@ -611,63 +611,70 @@ body {
 
 /* Visualization Styles */
 .viz-container {
-  padding: var(--space-8);
-  max-width: 1000px;
+  padding: var(--space-4) var(--space-6);
+  max-width: 100% !important;
   margin: 0 auto;
+  overflow-x: auto;
 }
 
 .viz-title {
   text-align: center;
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--space-4);
 }
 
 .viz-title h1 {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .viz-flow {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
   position: relative;
+  padding: var(--space-6) 0;
+  justify-content: center;
 }
 
 .viz-step {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-6);
-  padding: var(--space-4);
-  background: var(--surface-raised);
-  border: 1px solid var(--border-soft);
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-lg);
   transition: all var(--transition-base);
   cursor: pointer;
   position: relative;
   z-index: 1;
+  width: 120px;
+  text-align: center;
 }
 
 .viz-step:hover {
-  background: rgba(79, 127, 219, 0.12);
-  /* Secondary hover */
-  border-color: var(--blue-550);
-  transform: translateX(10px);
+  background: rgba(79, 127, 219, 0.08);
+  border-color: var(--border-soft);
+  transform: translateY(-5px);
 }
 
 .viz-step-number {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background: var(--blue-600);
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 1rem;
   flex-shrink: 0;
   color: var(--text-primary);
+  box-shadow: 0 0 15px rgba(79, 127, 219, 0.2);
 }
 
 .viz-step-info {
@@ -675,33 +682,46 @@ body {
 }
 
 .viz-step-title {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--space-1);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 110px;
 }
 
 .viz-step-desc {
-  font-size: 0.875rem;
+  font-size: 0.65rem;
   color: var(--text-secondary);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .viz-connector {
-  width: 2px;
-  height: var(--space-6);
-  background: linear-gradient(to bottom, var(--blue-600), transparent);
-  margin-left: 39px;
+  width: 40px;
+  height: 2px;
+  background: var(--border-soft);
+  margin-top: 18px;
+  /* Half of 36px step number */
   position: relative;
+  flex-shrink: 0;
 }
 
 .viz-connector::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid var(--blue-600);
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid var(--border-soft);
 }
 
 .viz-step-active {

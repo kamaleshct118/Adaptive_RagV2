@@ -26,22 +26,39 @@ interface StepProps {
 const VizStep: React.FC<StepProps> = ({ number, title, description, traceData, isLast }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const getStatusColor = () => {
-        if (!traceData) return 'var(--gray-600)';
-        if (traceData.status === 'completed') return 'var(--success)';
-        if (traceData.status === 'failed') return 'var(--error)';
-        return 'var(--warning)';
-    };
+    // Derive status directly for updated CSS system
+    let status = 'pending';
+    if (traceData) {
+        status = traceData.status === 'completed' ? 'completed' : 'active';
+        if (traceData.status === 'failed') status = 'failed';
+    }
+    // "active" in traceData usually means "completed" for past steps if we are strictly tracing. 
+    // However, the prompt implies "traceData" presence = active/completed.
+    // Let's refine: If traceData exists and status is 'completed', it's done. 
+    // If it's the *last* available trace step that is NOT completed, it's active.
+    // Simplifying for clarity: 
+    // - status='completed' -> Green/Teal
+    // - status='pending' (no traceData) -> Muted
+    // - status='failed' -> Red
+    // - The "Active" visual state needs to be inferred. 
+    // For now, we reuse the exact mapped status from props.
+
+    // ADJUSTMENT: The visualization logic usually provides data for completed steps. 
+    // If this step has data but isn't marked completed, it's likely the "current" one in some logic, 
+    // or we treat the last received step as active? 
+    // Let's rely on the CSS `data-status` attribute.
+
+    const visualStatus = traceData ? (traceData.status === 'completed' ? 'completed' : 'active') : 'pending';
 
     return (
         <>
             <div
-                className={`viz-step ${traceData ? 'viz-step-active' : ''}`}
+                className="viz-step"
+                data-status={visualStatus}
                 onClick={() => traceData && setIsExpanded(!isExpanded)}
-                style={{ borderColor: traceData ? getStatusColor() : 'rgba(255,255,255,0.08)' }}
             >
-                <div className="viz-step-number" style={{ background: getStatusColor() }}>
-                    {traceData?.status === 'completed' ? '✓' : traceData?.status === 'failed' ? '✗' : number}
+                <div className="viz-step-number">
+                    {traceData?.status === 'completed' ? '✓' : number}
                 </div>
                 <div className="viz-step-info">
                     <div className="viz-step-header">
@@ -60,7 +77,7 @@ const VizStep: React.FC<StepProps> = ({ number, title, description, traceData, i
                 </div>
             </div>
             {!isLast && (
-                <div className="viz-connector" style={{ background: traceData ? `linear-gradient(to bottom, ${getStatusColor()}, transparent)` : '' }}></div>
+                <div className="viz-connector" data-active={!!traceData}></div>
             )}
         </>
     );

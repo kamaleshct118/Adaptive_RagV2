@@ -40,8 +40,8 @@ const VizStep: React.FC<StepProps> = ({ number, title, description, traceData, i
                 onClick={onClick}
                 style={{ borderColor: isActive ? 'var(--blue-500)' : 'transparent' }}
             >
-                <div className="viz-step-number" style={{ background: getStatusColor() }}>
-                    {traceData?.status === 'completed' ? '✓' : traceData?.status === 'failed' ? '✗' : number}
+                <div className="viz-step-number">
+                    {traceData?.status === 'completed' ? '✓' : number}
                 </div>
                 <div className="viz-step-info">
                     <h3 className="viz-step-title">{title}</h3>

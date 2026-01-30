@@ -47,20 +47,26 @@ client/
 
 ## 🔧 Configuration
 
-The frontend proxies API requests to the backend via `next.config.js`:
+The frontend proxies API requests to the backend. You can configure the backend URL in `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+The configuration in `next.config.js` automatically loads this environment variable:
 
 ```javascript
 async rewrites() {
   return [
     {
       source: '/api/:path*',
-      destination: 'http://localhost:8000/api/:path*',
+      destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/:path*`,
     },
   ];
 }
 ```
 
-To change the backend URL, modify this configuration.
+To change the backend URL, simply update the `NEXT_PUBLIC_API_URL` variable in `.env.local`.
 
 ## 📦 Build for Production
 

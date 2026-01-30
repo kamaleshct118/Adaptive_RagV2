@@ -38,6 +38,7 @@ const VizStep: React.FC<StepProps> = ({ number, title, description, traceData, i
             <div
                 className={`viz-step ${isActive ? 'viz-step-active' : ''} ${traceData ? 'viz-step-data' : ''}`}
                 onClick={onClick}
+                data-status={isActive ? 'active' : traceData?.status || 'pending'}
                 style={{ borderColor: isActive ? 'var(--blue-500)' : 'transparent' }}
             >
                 <div className="viz-step-number">
@@ -116,7 +117,7 @@ export default function Visualize() {
         <div className="app-container" style={{ padding: 'var(--space-2)' }}>
             <header className="header" style={{ marginBottom: 'var(--space-2)', padding: 'var(--space-2) var(--space-4)' }}>
                 <div className="header-logo">
-                    <div className="header-logo-icon" style={{ width: '30px', height: '30px', fontSize: '1rem' }}>🏥</div>
+
                     <div>
                         <h1 className="header-title" style={{ fontSize: '1.1rem' }}>Adaptive RAG</h1>
                     </div>
